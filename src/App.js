@@ -2,28 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 
 // --- MOCK DATA & HELPERS ---
 
-const firstNames = ["LeBron", "Kevin", "Stephen", "James", "Anthony", "Kawhi", "Giannis", "Luka", "Nikola", "Joel", "Damian", "Jayson", "Devin", "Zion", "Ja"];
-const lastNames = ["James", "Durant", "Curry", "Harden", "Davis", "Leonard", "Antetokounmpo", "Dončić", "Jokić", "Embiid", "Lillard", "Tatum", "Booker", "Williamson", "Morant"];
-
-// Generates a roster of 15 unique players, highlighting the first 5
+// Generates a roster of 15 generic players, highlighting the first 5
 const generateRoster = (teamName) => {
     const roster = [];
-    const usedNames = new Set();
-    while (roster.length < 15) {
-        const fName = firstNames[Math.floor(Math.random() * firstNames.length)];
-        const lName = lastNames[Math.floor(Math.random() * lastNames.length)];
-        const fullName = `${fName} ${lName}`;
-        if (!usedNames.has(fullName)) {
-            usedNames.add(fullName);
-            roster.push({
-                id: `${teamName}-${roster.length + 1}`,
-                number: Math.floor(Math.random() * 100),
-                name: fName,
-                surname: lName,
-                isOnCourt: roster.length < 5, // Highlight the first 5 players
-                ...createInitialPlayerStats(),
-            });
-        }
+    for (let i = 0; i < 15; i++) {
+        roster.push({
+            id: `${teamName}-${i + 1}`,
+            number: Math.floor(Math.random() * 100),
+            name: `Player ${i + 1}`,
+            surname: `Surname ${i + 1}`,
+            isOnCourt: i < 5, // Highlight the first 5 players
+            ...createInitialPlayerStats(),
+        });
     }
     return roster;
 };
@@ -31,8 +21,8 @@ const generateRoster = (teamName) => {
 const formatStat = (made, attempted) => `${made}-${attempted}`;
 
 const createInitialPlayerStats = () => ({
-    min: 0, '2pt_m': 0, '2pt_a': 0, '3pt_m': 0, '3pt_a': 0, ftm: 0, fta: 0,
-    oreb: 0, dreb: 0, reb: 0, ast: 0, stl: 0, blk: 0, 
+    min: 0, '2pt_m': 0, '2pt_a': 0, '3pt_m': 0, '3pt_a': 0, 'ft_m': 0, 'ft_a': 0,
+    oreb: 0, dreb: 0, ast: 0, stl: 0, blk: 0, 
     to: 0, pf: 0, plusMinus: 0, pts: 0,
 });
 
@@ -108,33 +98,31 @@ const HomeScreen = ({ matches, onSelectMatch, onAddMatch, onCloneMatch, onDelete
     }
   };
 
-  const handleDelete = (matchId, matchName) => {
-    if (window.confirm(`Are you sure you want to permanently delete the match: "${matchName}"?`)) {
-        onDeleteMatch(matchId);
-    }
+  const handleDelete = (matchId) => {
+     onDeleteMatch(matchId);
   };
 
 
   return (
     <div style={styles.screen}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%'}}>
-        <h1 style={{...styles.title, marginBottom: 0}}>My Matches</h1>
+        <h1 style={{...styles.title, marginBottom: 0}}>Games</h1>
         <button style={{...styles.button, width: 'auto', padding: '10px 15px'}} onClick={openAddModal}>
             + New Match
         </button>
       </div>
       
       <div style={styles.tabContainer}>
-        {matches.map(item => (
+        {matches.map((item, index) => (
           <div key={item.id} style={styles.tab}>
             <div style={{flex: 1, cursor: 'pointer'}} onClick={() => onSelectMatch(item)}>
-                <h2 style={styles.tabTitle}>{item.name}</h2>
+                <h2 style={styles.tabTitle}>{`Game ${index + 1}: ${item.name}`}</h2>
             </div>
             <div style={{display: 'flex', gap: '10px'}}>
                  <button title="Clone Match" style={{...styles.iconButton, backgroundColor: styles.colors.secondary}} onClick={(e) => { e.stopPropagation(); openCloneModal(item); }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM7 4a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4zM2 4a1 1 0 0 1 1-1h1v10a2 2 0 0 0 2 2h5a1 1 0 0 1-1-1V4a2 2 0 0 0-2-2H3a1 1 0 0 1-1 1z"/></svg>
                 </button>
-                <button title="Erase Match" style={{...styles.iconButton, backgroundColor: styles.colors.danger}} onClick={(e) => { e.stopPropagation(); handleDelete(item.id, item.name); }}>
+                <button title="Erase Match" style={{...styles.iconButton, backgroundColor: styles.colors.danger}} onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
                 </button>
             </div>
@@ -185,7 +173,7 @@ const GeminiAnalysisModal = ({ show, onClose, boxScore, matchName }) => {
             promptData += `Team: ${team.name}\n`;
             let teamTotals = createInitialPlayerStats();
             team.roster.forEach(p => {
-                promptData += `- Player #${p.number} ${p.name} ${p.surname}: ${p.pts} PTS, ${p.reb} REB, ${p.ast} AST\n`;
+                promptData += `- Player #${p.number} ${p.name} ${p.surname}: ${p.pts} PTS, ${p.oreb + p.dreb} REB, ${p.ast} AST\n`;
                 Object.keys(teamTotals).forEach(key => typeof teamTotals[key] === 'number' && (teamTotals[key] += p[key]));
             });
             promptData += `Total Score: ${teamTotals.pts}\n\n`;
@@ -300,19 +288,67 @@ const MatchScreen = ({ match, onBack, onUpdateMatch }) => {
   };
   
   const handleStatAdjustment = (teamKey, playerIndex, stat, delta) => {
-      setEditableBoxScore(prev => {
-          const newBoxScore = JSON.parse(JSON.stringify(prev));
-          const player = newBoxScore[teamKey].roster[playerIndex];
-          
-          if (typeof player[stat] === 'number') {
-              player[stat] = Math.max(0, player[stat] + delta); // Prevent negative stats
-          }
-          // Recalculate derived stats
-          player.reb = player.oreb + player.dreb;
-          onUpdateMatch(match.id, newBoxScore);
-          return newBoxScore;
-      });
+    setEditableBoxScore(prev => {
+        const newBoxScore = JSON.parse(JSON.stringify(prev));
+        const player = newBoxScore[teamKey].roster[playerIndex];
+
+        // Specific logic for shot makes/attempts vs simple stats
+        const makeAttemptRegex = /^(2pt|3pt|ft)_(m|a)$/;
+        const match = stat.match(makeAttemptRegex);
+
+        if (match) { // It's a shot make or attempt
+            const shotType = match[1];
+            const fieldType = match[2]; // 'm' or 'a'
+            const makeKey = `${shotType}_m`;
+            const attemptKey = `${shotType}_a`;
+            
+            if (fieldType === 'm') {
+                const newMakes = player[makeKey] + delta;
+                if (newMakes >= 0 && (delta > 0 || newMakes < player[attemptKey])) {
+                    player[makeKey] = newMakes;
+                    if (delta > 0) player[attemptKey]++; // Add an attempt when a make is added
+                }
+            } else { // fieldType === 'a'
+                 const newAttempts = player[attemptKey] + delta;
+                 if (newAttempts >= player[makeKey]) {
+                     player[attemptKey] = newAttempts;
+                 }
+            }
+        } else { // It's a simple stat
+            if (typeof player[stat] === 'number') {
+                const newValue = player[stat] + delta;
+                player[stat] = Math.max(0, newValue);
+            }
+        }
+
+        // Recalculate total points
+        player.pts = (player['2pt_m'] * 2) + (player['3pt_m'] * 3) + player.ft_m;
+        
+        onUpdateMatch(match.id, newBoxScore);
+        return newBoxScore;
+    });
   };
+  
+  const handlePlayerActivationToggle = (teamKey, playerIndex) => {
+    const newBoxScore = JSON.parse(JSON.stringify(editableBoxScore));
+    const roster = newBoxScore[teamKey].roster;
+    const player = roster[playerIndex];
+    const currentlyOnCourt = roster.filter(p => p.isOnCourt).length;
+
+    if (!player.isOnCourt && currentlyOnCourt >= 5) {
+        alert("You can only have 5 players on the court.");
+        return;
+    }
+
+    // Toggle status
+    player.isOnCourt = !player.isOnCourt;
+
+    // Re-sort the roster to move active players to the top
+    roster.sort((a, b) => b.isOnCourt - a.isOnCourt);
+
+    onUpdateMatch(match.id, newBoxScore);
+  };
+
 
   const toggleEditMode = () => {
       if (isEditMode) {
@@ -330,7 +366,7 @@ const MatchScreen = ({ match, onBack, onUpdateMatch }) => {
   };
 
   const renderTeamTable = (teamData, teamKey, teamColor) => {
-    const tableHead = ['#', 'First Name', 'Surname', 'MIN', '2PT', '3PT', 'FT', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PF', '+/-', 'PTS'];
+    const tableHead = ['#', 'First Name', 'Surname', 'MIN', '2PT', '3PT', 'FT', 'OREB', 'DREB', 'AST', 'STL', 'BLK', 'TO', 'PF', '+/-', 'PTS'];
     const teamTotals = calculateTeamTotals(teamData.roster);
     const onCourtHighlightStyle = { backgroundColor: teamColor.replace(')', ', 0.2)').replace('rgb', 'rgba') };
     
@@ -340,27 +376,30 @@ const MatchScreen = ({ match, onBack, onUpdateMatch }) => {
             <div style={{...styles.boxScoreContainer, overflowX: 'auto', width: '100%'}}>
                 <table style={styles.table}>
                     <thead>
-                        <tr>{tableHead.map((h, i) => <th key={h} style={{...styles.tableHead, ...(i < 3 ? styles.playerInfoHead : {}), ...((i < 3) && styles.stickyCol) }}>{h}</th>)}</tr>
+                        <tr>{tableHead.map((h, i) => <th key={h} style={{...styles.tableHead, ...(i > 0 && i < 3 ? styles.playerInfoHead : {}), ...(i === 0 && styles.stickyCol) }}>{h}</th>)}</tr>
                     </thead>
                     <tbody>
                         {teamData.roster.map((player, index) => (
-                            <tr key={player.id} style={player.isOnCourt ? {...styles.tableRow, ...onCourtHighlightStyle} : styles.tableRow}>
-                                <td style={{...styles.tableCell, ...styles.stickyCol, left: 0, backgroundColor: 'inherit'}}>
+                            <tr key={player.id} className={player.isOnCourt ? "on-court-row" : "table-row"} style={player.isOnCourt ? onCourtHighlightStyle : {}}>
+                                <td 
+                                    className="sticky-col"
+                                    style={{...styles.tableCell, ...styles.stickyCol, backgroundColor: 'inherit', cursor: isEditMode ? 'default' : 'pointer'}}
+                                    onClick={() => !isEditMode && handlePlayerActivationToggle(teamKey, index)}
+                                >
                                     {isEditMode ? <input type="text" value={player.number} onChange={e => handleRosterChange(teamKey, index, 'number', e.target.value)} style={styles.editInput} /> : player.number}
                                 </td>
-                                <td style={{...styles.tableCell, ...styles.stickyCol, left: '50px', textAlign: 'left', backgroundColor: 'inherit'}}>
+                                <td style={{...styles.tableCell, textAlign: 'left'}}>
                                     {isEditMode ? <input type="text" value={player.name} onChange={e => handleRosterChange(teamKey, index, 'name', e.target.value)} style={styles.editInput} /> : player.name}
                                 </td>
-                                <td style={{...styles.tableCell, ...styles.stickyCol, left: '150px', textAlign: 'left', backgroundColor: 'inherit'}}>
+                                <td style={{...styles.tableCell, textAlign: 'left'}}>
                                     {isEditMode ? <input type="text" value={player.surname} onChange={e => handleRosterChange(teamKey, index, 'surname', e.target.value)} style={styles.editInput} /> : player.surname}
                                 </td>
                                 <td style={styles.tableCell}>{!isEditMode ? <StatAdjuster value={player.min} onAdjust={(d) => handleStatAdjustment(teamKey, index, 'min', d)} /> : player.min}</td>
-                                <td style={styles.tableCell}>{formatStat(player['2pt_m'], player['2pt_a'])}</td>
-                                <td style={styles.tableCell}>{formatStat(player['3pt_m'], player['3pt_a'])}</td>
-                                <td style={styles.tableCell}>{formatStat(player.ftm, player.fta)}</td>
+                                <td style={styles.tableCell}>{!isEditMode ? <StatAdjuster value={player['2pt_m']} onAdjust={(d) => handleStatAdjustment(teamKey, index, '2pt_m', d)} /> : player['2pt_m']} - {!isEditMode ? <StatAdjuster value={player['2pt_a']} onAdjust={(d) => handleStatAdjustment(teamKey, index, '2pt_a', d)} /> : player['2pt_a']}</td>
+                                <td style={styles.tableCell}>{!isEditMode ? <StatAdjuster value={player['3pt_m']} onAdjust={(d) => handleStatAdjustment(teamKey, index, '3pt_m', d)} /> : player['3pt_m']} - {!isEditMode ? <StatAdjuster value={player['3pt_a']} onAdjust={(d) => handleStatAdjustment(teamKey, index, '3pt_a', d)} /> : player['3pt_a']}</td>
+                                <td style={styles.tableCell}>{!isEditMode ? <StatAdjuster value={player.ft_m} onAdjust={(d) => handleStatAdjustment(teamKey, index, 'ft_m', d)} /> : player.ft_m} - {!isEditMode ? <StatAdjuster value={player.ft_a} onAdjust={(d) => handleStatAdjustment(teamKey, index, 'ft_a', d)} /> : player.ft_a}</td>
                                 <td style={styles.tableCell}>{!isEditMode ? <StatAdjuster value={player.oreb} onAdjust={(d) => handleStatAdjustment(teamKey, index, 'oreb', d)} /> : player.oreb}</td>
                                 <td style={styles.tableCell}>{!isEditMode ? <StatAdjuster value={player.dreb} onAdjust={(d) => handleStatAdjustment(teamKey, index, 'dreb', d)} /> : player.dreb}</td>
-                                <td style={styles.tableCell}>{player.reb}</td>
                                 <td style={styles.tableCell}>{!isEditMode ? <StatAdjuster value={player.ast} onAdjust={(d) => handleStatAdjustment(teamKey, index, 'ast', d)} /> : player.ast}</td>
                                 <td style={styles.tableCell}>{!isEditMode ? <StatAdjuster value={player.stl} onAdjust={(d) => handleStatAdjustment(teamKey, index, 'stl', d)} /> : player.stl}</td>
                                 <td style={styles.tableCell}>{!isEditMode ? <StatAdjuster value={player.blk} onAdjust={(d) => handleStatAdjustment(teamKey, index, 'blk', d)} /> : player.blk}</td>
@@ -373,15 +412,14 @@ const MatchScreen = ({ match, onBack, onUpdateMatch }) => {
                     </tbody>
                     <tfoot>
                         <tr style={styles.tableTotalRow}>
-                            <td style={{...styles.tableCell, ...styles.stickyCol, left: 0, fontWeight: 'bold'}}></td>
-                            <td colSpan="2" style={{...styles.tableCell, ...styles.stickyCol, left: '50px', textAlign: 'left', fontWeight: 'bold'}}>TEAM TOTALS</td>
+                            <td className="sticky-col" style={{...styles.tableCell, ...styles.stickyCol, fontWeight: 'bold'}}></td>
+                            <td colSpan="2" style={{...styles.tableCell, fontWeight: 'bold', textAlign: 'left'}}>TEAM TOTALS</td>
                             <td style={{...styles.tableCell, fontWeight: 'bold'}}>{teamTotals.min}</td>
                             <td style={{...styles.tableCell, fontWeight: 'bold'}}>{formatStat(teamTotals['2pt_m'], teamTotals['2pt_a'])}</td>
                             <td style={{...styles.tableCell, fontWeight: 'bold'}}>{formatStat(teamTotals['3pt_m'], teamTotals['3pt_a'])}</td>
-                            <td style={{...styles.tableCell, fontWeight: 'bold'}}>{formatStat(teamTotals.ftm, teamTotals.fta)}</td>
+                            <td style={{...styles.tableCell, fontWeight: 'bold'}}>{formatStat(teamTotals.ft_m, teamTotals.ft_a)}</td>
                             <td style={{...styles.tableCell, fontWeight: 'bold'}}>{teamTotals.oreb}</td>
                             <td style={{...styles.tableCell, fontWeight: 'bold'}}>{teamTotals.dreb}</td>
-                            <td style={{...styles.tableCell, fontWeight: 'bold'}}>{teamTotals.reb}</td>
                             <td style={{...styles.tableCell, fontWeight: 'bold'}}>{teamTotals.ast}</td>
                             <td style={{...styles.tableCell, fontWeight: 'bold'}}>{teamTotals.stl}</td>
                             <td style={{...styles.tableCell, fontWeight: 'bold'}}>{teamTotals.blk}</td>
@@ -402,7 +440,7 @@ const MatchScreen = ({ match, onBack, onUpdateMatch }) => {
   return (
     <div style={{...styles.screen, padding: '10px 20px'}}>
       <GeminiAnalysisModal show={geminiModalVisible} onClose={() => setGeminiModalVisible(false)} boxScore={editableBoxScore} matchName={match.name} />
-      <button onClick={onBack} style={{...styles.button, alignSelf: 'flex-start', marginBottom: '10px', width: 'auto', padding: '10px 20px'}}> &larr; Back to Matches</button>
+      <button onClick={onBack} style={{...styles.button, alignSelf: 'flex-start', marginBottom: '10px', width: 'auto', padding: '10px 20px'}}> &larr; Back to Games</button>
       <h1 style={styles.title}>{match.name}</h1>
       
       <div style={{...styles.controlsContainer, justifyContent: 'space-between', borderTop: `1px solid ${styles.colors.border}`, borderBottom: `1px solid ${styles.colors.border}`, padding: '10px 0', marginTop: '10px'}}>
@@ -531,7 +569,7 @@ const styles = {
     primary: '#007AFF', primaryLight: '#5856D6', secondary: '#8E8E93',
     background: '#F2F2F7', textPrimary: '#000000', textSecondary: '#3C3C4399',
     border: '#C6C6C8', danger: '#FF3B30', warning: '#FF9500', white: '#ffffff',
-    playerInfoBg: '#E5E5EA',
+    playerInfoBg: '#E5E5EA', 
     gemini: '#FF9500', teamAColor: 'rgb(0, 122, 255)', teamBColor: 'rgb(52, 199, 89)'
   },
   appContainer: {
@@ -598,12 +636,6 @@ const styles = {
   controlsContainer: {
     display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px', width: '100%',
   },
-  transcriptionBox: {
-    width: '100%', padding: '15px', marginTop: '10px', backgroundColor: '#ffffff',
-    borderRadius: '12px', minHeight: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    border: '1px solid #E5E5EA'
-  },
-  transcriptionText: { fontStyle: 'italic', color: '#3C3C43', fontSize: '16px', },
   boxScoreContainer: { width: '100%', flex: 1, },
   teamTableName: {
     fontSize: '22px', paddingBottom: '8px', marginBottom: '12px', fontWeight: '700'
@@ -618,7 +650,7 @@ const styles = {
   tableRow: { backgroundColor: '#ffffff', transition: 'background-color 0.2s ease', },
   onCourtRow: { backgroundColor: 'inherit' }, // Base style, overridden by dynamic style
   tableTotalRow: { backgroundColor: '#E5E5EA', fontWeight: '700' },
-  stickyCol: { position: 'sticky', zIndex: 5, backgroundColor: 'inherit' },
+  stickyCol: { position: 'sticky', left: 0, zIndex: 5 },
   geminiActions: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%'},
   geminiButton: {
       backgroundColor: '#FF9500', color: 'white', border: 'none', padding: '12px',
@@ -649,9 +681,10 @@ styleSheet.innerText = `
   button:active { transform: scale(0.98); }
   .geminiButton:hover { background-color: #f39c12 !important; }
   .tab:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
-  .tableRow:hover { background-color: #E5E5EA; }
-  .tableRow:hover .stickyCol { background-color: #E5E5EA !important; }
-  tr.onCourtRow:hover { background-color: inherit !important; filter: brightness(0.95); }
+  .table-row:hover { background-color: #E5E5EA; }
+  .table-row:hover .sticky-col { background-color: #E5E5EA !important; }
+  .on-court-row:hover { background-color: inherit !important; filter: brightness(0.95); }
+  .on-court-row:hover .sticky-col { background-color: inherit !important; filter: brightness(0.95); }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 `;
 document.head.appendChild(styleSheet);
