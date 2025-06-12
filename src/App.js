@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 
 // --- MOCK DATA & HELPERS ---
 
-// Generates a roster of 15 generic players, highlighting the first 5
 const generateRoster = (teamName) => {
     const roster = [];
     for (let i = 0; i < 15; i++) {
@@ -98,10 +97,6 @@ const HomeScreen = ({ matches, onSelectMatch, onAddMatch, onCloneMatch, onDelete
     }
   };
 
-  const handleDelete = (matchId) => {
-     onDeleteMatch(matchId);
-  };
-
 
   return (
     <div style={styles.screen}>
@@ -122,7 +117,7 @@ const HomeScreen = ({ matches, onSelectMatch, onAddMatch, onCloneMatch, onDelete
                  <button title="Clone Match" style={{...styles.iconButton, backgroundColor: styles.colors.secondary}} onClick={(e) => { e.stopPropagation(); openCloneModal(item); }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM7 4a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4zM2 4a1 1 0 0 1 1-1h1v10a2 2 0 0 0 2 2h5a1 1 0 0 1-1-1V4a2 2 0 0 0-2-2H3a1 1 0 0 1-1 1z"/></svg>
                 </button>
-                <button title="Erase Match" style={{...styles.iconButton, backgroundColor: styles.colors.danger}} onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}>
+                <button title="Erase Match" style={{...styles.iconButton, backgroundColor: styles.colors.danger}} onClick={(e) => { e.stopPropagation(); onDeleteMatch(item.id); }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
                 </button>
             </div>
@@ -281,24 +276,25 @@ const MatchScreen = ({ match, onBack, onUpdateMatch }) => {
     setEditableBoxScore(JSON.parse(JSON.stringify(match.boxScore)));
   }, [match]);
 
-  const handleRosterChange = (team, index, field, value) => {
+  const handleRosterChange = (team, playerIndex, field, value) => {
     const newBoxScore = JSON.parse(JSON.stringify(editableBoxScore));
-    newBoxScore[team].roster[index][field] = value;
+    newBoxScore[team].roster[playerIndex][field] = value;
     setEditableBoxScore(newBoxScore);
   };
   
   const handleStatAdjustment = (teamKey, playerIndex, stat, delta) => {
+    // This function now correctly handles all stat adjustments
     setEditableBoxScore(prev => {
         const newBoxScore = JSON.parse(JSON.stringify(prev));
         const player = newBoxScore[teamKey].roster[playerIndex];
 
         // Specific logic for shot makes/attempts vs simple stats
         const makeAttemptRegex = /^(2pt|3pt|ft)_(m|a)$/;
-        const match = stat.match(makeAttemptRegex);
+        const statMatch = stat.match(makeAttemptRegex);
 
-        if (match) { // It's a shot make or attempt
-            const shotType = match[1];
-            const fieldType = match[2]; // 'm' or 'a'
+        if (statMatch) { // It's a shot make or attempt
+            const shotType = statMatch[1];
+            const fieldType = statMatch[2]; // 'm' or 'a'
             const makeKey = `${shotType}_m`;
             const attemptKey = `${shotType}_a`;
             
@@ -364,6 +360,49 @@ const MatchScreen = ({ match, onBack, onUpdateMatch }) => {
     }
     return totals;
   };
+  
+   const handleExportCSV = () => {
+        const headers = ['#', 'First Name', 'Surname', 'MIN', '2PT M', '2PT A', '3PT M', '3PT A', 'FT M', 'FT A', 'OREB', 'DREB', 'AST', 'STL', 'BLK', 'TO', 'PF', '+/-', 'PTS'];
+        let csvContent = headers.join(",") + "\n";
+        
+        const teams = [editableBoxScore.teamA, editableBoxScore.teamB];
+
+        teams.forEach(team => {
+            csvContent += `"${team.name}"\n`; // Team Name Header
+            team.roster.forEach(player => {
+                const row = [
+                    player.number, player.name, player.surname, player.min,
+                    player['2pt_m'], player['2pt_a'],
+                    player['3pt_m'], player['3pt_a'],
+                    player.ft_m, player.ft_a,
+                    player.oreb, player.dreb, player.ast, player.stl, player.blk,
+                    player.to, player.pf, player.plusMinus, player.pts
+                ];
+                csvContent += row.map(val => `"${val}"`).join(",") + "\n";
+            });
+
+            const totals = calculateTeamTotals(team.roster);
+            const totalsRow = [
+                'TOTALS', '', '', totals.min, totals['2pt_m'], totals['2pt_a'],
+                totals['3pt_m'], totals['3pt_a'], totals.ft_m, totals.ft_a,
+                totals.oreb, totals.dreb, totals.ast, totals.stl, totals.blk,
+                totals.to, totals.pf, totals.plusMinus, totals.pts
+            ];
+            csvContent += totalsRow.map(val => `"${val}"`).join(",") + "\n\n";
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${match.name.replace(/\s/g, '_')}_boxscore.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
 
   const renderTeamTable = (teamData, teamKey, teamColor) => {
     const tableHead = ['#', 'First Name', 'Surname', 'MIN', '2PT', '3PT', 'FT', 'OREB', 'DREB', 'AST', 'STL', 'BLK', 'TO', 'PF', '+/-', 'PTS'];
@@ -452,6 +491,7 @@ const MatchScreen = ({ match, onBack, onUpdateMatch }) => {
         <div>
             <button style={{...styles.button, width: 'auto', padding: '8px 15px', backgroundColor: isEditMode ? styles.colors.primaryLight : styles.colors.secondary}} onClick={toggleEditMode}>{isEditMode ? 'Save Roster' : 'Edit Roster'}</button>
             <button style={{...styles.button, width: 'auto', padding: '8px 15px', backgroundColor: styles.colors.gemini}} onClick={() => setGeminiModalVisible(true)}>✨ Ask Gemini</button>
+            <button style={{...styles.button, width: 'auto', padding: '8px 15px', backgroundColor: styles.colors.secondary}} onClick={handleExportCSV}>Export CSV</button>
         </div>
       </div>
       
@@ -518,10 +558,14 @@ export default function App() {
   };
   
   const handleDeleteMatch = (matchId) => {
-      if (selectedMatch?.id === matchId) {
-          handleBackToHome();
-      }
-      setMatches(prev => prev.filter(m => m.id !== matchId));
+      setMatches(prev => {
+          const newMatches = prev.filter(m => m.id !== matchId);
+          if (selectedMatch?.id === matchId) {
+             setCurrentScreen("Home");
+             setSelectedMatch(null);
+          }
+          return newMatches;
+      });
   };
 
   const handleUpdateMatch = (matchId, updatedBoxScore) => {
