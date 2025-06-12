@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/StatsApp/static/js/main.945d33dc.js",
+    "main.js": "/StatsApp/static/js/main.e10ef09a.js",
     "index.html": "/StatsApp/index.html",
-    "main.945d33dc.js.map": "/StatsApp/static/js/main.945d33dc.js.map"
+    "main.e10ef09a.js.map": "/StatsApp/static/js/main.e10ef09a.js.map"
   },
   "entrypoints": [
-    "static/js/main.945d33dc.js"
+    "static/js/main.e10ef09a.js"
   ]
 }
