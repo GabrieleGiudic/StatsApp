@@ -1,5 +1,5 @@
 # StatsApp
-A React web app designed to gather basketball statistics easily during games.
+A React web app designed to gather basketball statistics easily during games -> https://gabrielegiudic.github.io/StatsApp/
 
 Current state:
 It’s a trial or prototype version.
